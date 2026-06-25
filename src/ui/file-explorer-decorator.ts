@@ -60,7 +60,8 @@ export class FileExplorerDecorator {
   }
 
   private decorateRow(row: HTMLElement): void {
-    const path = row.dataset.path;
+    const rawPath = row.dataset.path;
+    const path = rawPath === "/" ? "" : rawPath;
     if (!path) return;
     const folder = isFolderRow(row);
     const size = this.options.sizeFor(path, folder);
@@ -87,4 +88,3 @@ export class FileExplorerDecorator {
     }
   }
 }
-

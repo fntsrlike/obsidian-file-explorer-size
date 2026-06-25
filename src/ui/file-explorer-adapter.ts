@@ -2,7 +2,11 @@ export const FILE_ROW_SELECTOR = ".nav-file-title[data-path]";
 export const FOLDER_ROW_SELECTOR = ".nav-folder-title[data-path]";
 
 export function explorerRoots(): HTMLElement[] {
-  return [...document.querySelectorAll<HTMLElement>(".nav-files-container")];
+  return [
+    ...document.querySelectorAll<HTMLElement>(
+      '.workspace-leaf-content[data-type="file-explorer"], .workspace-leaf-content[data-type="mk-path-view"]'
+    )
+  ];
 }
 
 export function rowsWithin(root: ParentNode): HTMLElement[] {
@@ -28,8 +32,10 @@ export function isFolderRow(row: HTMLElement): boolean {
 export function installToggleActions(onClick: () => void): () => void {
   const buttons: HTMLElement[] = [];
   for (const root of explorerRoots()) {
-    const leaf = root.closest<HTMLElement>(".workspace-leaf");
-    const actions = leaf?.querySelector<HTMLElement>(".view-actions");
+    const actions =
+      root.querySelector<HTMLElement>(".nav-buttons-container") ??
+      root.querySelector<HTMLElement>(".view-actions") ??
+      root.closest<HTMLElement>(".workspace-leaf")?.querySelector<HTMLElement>(".view-actions");
     if (!actions || actions.querySelector(".fes-toggle-action")) continue;
     const button = document.createElement("button");
     button.className = "clickable-icon fes-toggle-action";

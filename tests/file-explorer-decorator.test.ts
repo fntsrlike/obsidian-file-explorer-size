@@ -1,6 +1,10 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 import { FileExplorerDecorator } from "../src/ui/file-explorer-decorator";
+import {
+  explorerRoots,
+  installToggleActions
+} from "../src/ui/file-explorer-adapter";
 
 function explorerFixture(): HTMLElement {
   const root = document.createElement("div");
@@ -18,6 +22,23 @@ function explorerFixture(): HTMLElement {
 }
 
 describe("FileExplorerDecorator", () => {
+  it("finds MAKE.md file explorer roots and installs its toolbar action", () => {
+    document.body.innerHTML = `
+      <div class="workspace-leaf-content" data-type="mk-path-view">
+        <div class="view-actions"></div>
+        <div class="mk-tree-item nav-folder-title" data-path="/">
+          <div class="nav-folder-title-content">Vault</div>
+        </div>
+      </div>
+    `;
+    expect(explorerRoots()).toHaveLength(1);
+    const remove = installToggleActions(vi.fn());
+    expect(document.querySelector(".fes-toggle-action")).not.toBeNull();
+    remove();
+    expect(document.querySelector(".fes-toggle-action")).toBeNull();
+    document.body.innerHTML = "";
+  });
+
   it("decorates each row once and applies separate warning thresholds", () => {
     const root = explorerFixture();
     const decorator = new FileExplorerDecorator({
@@ -88,4 +109,3 @@ describe("FileExplorerDecorator", () => {
     root.remove();
   });
 });
-
