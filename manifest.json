@@ -1,0 +1,10 @@
+{
+  "id": "file-explorer-size",
+  "name": "File Explorer Size",
+  "version": "0.1.0",
+  "minAppVersion": "1.7.2",
+  "description": "Shows file and recursive folder sizes in the file explorer and a ranking view.",
+  "author": "月湖",
+  "isDesktopOnly": false
+}
+

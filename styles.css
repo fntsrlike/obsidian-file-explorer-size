@@ -1,0 +1,17 @@
+.fes-size-label {
+  margin-inline-start: auto;
+  flex: 0 0 auto;
+  padding-inline-start: var(--size-2-2);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  white-space: nowrap;
+}
+
+.fes-size-label.is-warning {
+  color: var(--text-error);
+}
+
+.fes-sizes-hidden .fes-size-label {
+  display: none;
+}
+
