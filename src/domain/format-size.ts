@@ -15,7 +15,7 @@ export function formatBytes(bytes: number, unit: SizeUnit = "auto"): string {
     return `${displayNumber(safeBytes / KIB ** exponent)} ${unit}`;
   }
 
-  if (safeBytes === 0) return "0 B";
+  if (safeBytes === 0) return "0 KB";
   const exponent = Math.min(
     Math.floor(Math.log(safeBytes) / Math.log(KIB)),
     UNITS.length - 1
@@ -26,4 +26,3 @@ export function formatBytes(bytes: number, unit: SizeUnit = "auto"): string {
 export function isOverThreshold(size: number, threshold: number): boolean {
   return size > threshold;
 }
-

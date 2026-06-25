@@ -3,7 +3,7 @@ import { formatBytes, isOverThreshold } from "../src/domain/format-size";
 
 describe("formatBytes", () => {
   it("formats automatic binary units", () => {
-    expect(formatBytes(0)).toBe("0 B");
+    expect(formatBytes(0)).toBe("0 KB");
     expect(formatBytes(1024)).toBe("1 KB");
     expect(formatBytes(10 * 1024 * 1024)).toBe("10 MB");
     expect(formatBytes(1536)).toBe("1.5 KB");
@@ -21,4 +21,3 @@ describe("isOverThreshold", () => {
     expect(isOverThreshold(10_000_000, 10_000_000)).toBe(false);
   });
 });
-

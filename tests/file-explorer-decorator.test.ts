@@ -108,4 +108,25 @@ describe("FileExplorerDecorator", () => {
     decorator.stop();
     root.remove();
   });
+
+  it("shows missing sizes as a subdued zero value", () => {
+    const root = explorerFixture();
+    const decorator = new FileExplorerDecorator({
+      roots: () => [root],
+      sizeFor: () => undefined,
+      format: (size) => (size === 0 ? "0 KB" : `${size} B`),
+      fileWarningBytes: () => 10,
+      folderWarningBytes: () => 100,
+      shown: () => true,
+      onToggle: vi.fn()
+    });
+
+    decorator.refresh();
+
+    const labels = root.querySelectorAll(".fes-size-label");
+    expect(labels).toHaveLength(2);
+    expect([...labels].every((label) => label.textContent === "0 KB")).toBe(true);
+    expect([...labels].every((label) => label.classList.contains("is-zero"))).toBe(true);
+    root.remove();
+  });
 });

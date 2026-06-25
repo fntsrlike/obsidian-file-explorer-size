@@ -64,12 +64,8 @@ export class FileExplorerDecorator {
     const path = rawPath === "/" ? "" : rawPath;
     if (!path) return;
     const folder = isFolderRow(row);
-    const size = this.options.sizeFor(path, folder);
+    const size = this.options.sizeFor(path, folder) ?? 0;
     const existing = row.querySelector<HTMLElement>(":scope > .fes-size-label");
-    if (size === undefined) {
-      existing?.remove();
-      return;
-    }
 
     const label = existing ?? document.createElement("span");
     label.className = "fes-size-label";
@@ -78,6 +74,7 @@ export class FileExplorerDecorator {
       ? this.options.folderWarningBytes()
       : this.options.fileWarningBytes();
     label.classList.toggle("is-warning", isOverThreshold(size, threshold));
+    label.classList.toggle("is-zero", size === 0);
     if (!existing) row.append(label);
   }
 

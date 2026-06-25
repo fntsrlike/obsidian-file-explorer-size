@@ -11,6 +11,11 @@
   color: var(--text-error);
 }
 
+.fes-size-label.is-zero {
+  color: var(--text-faint);
+  opacity: 0.7;
+}
+
 .fes-sizes-hidden .fes-size-label {
   display: none;
 }
