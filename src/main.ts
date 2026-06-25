@@ -19,8 +19,9 @@ import {
   type VaultFileEventSource
 } from "./services/incremental-updater";
 import {
-  explorerRoots,
-  installToggleActions
+  fileBrowserRoots,
+  installToggleActions,
+  makeNavigatorRoots
 } from "./ui/file-explorer-adapter";
 import { FileExplorerDecorator } from "./ui/file-explorer-decorator";
 import {
@@ -35,7 +36,8 @@ interface FileExplorerViewLike {
 export default class FileExplorerSizePlugin extends Plugin {
   settings: FileExplorerSizeSettings = { ...DEFAULT_SETTINGS };
   readonly index = new SizeIndex();
-  private decorator: FileExplorerDecorator | undefined;
+  private fileBrowserDecorator: FileExplorerDecorator | undefined;
+  private makeNavigatorDecorator: FileExplorerDecorator | undefined;
   private updater: IncrementalUpdater | undefined;
   private removeToolbarActions: (() => void) | undefined;
   private rebuildPromise: Promise<void> | undefined;
@@ -49,10 +51,21 @@ export default class FileExplorerSizePlugin extends Plugin {
     );
 
     this.addCommand({
-      id: "toggle-size-display",
-      name: "Toggle size display",
-      callback: () => void this.setSizesShown(!this.settings.showSizes)
+      id: "toggle-file-browser-sizes",
+      name: "Toggle File Browser sizes",
+      callback: () =>
+        void this.setFileBrowserSizesShown(!this.settings.showFileBrowserSizes)
     });
+    if (this.isMakeMdEnabled()) {
+      this.addCommand({
+        id: "toggle-make-navigator-sizes",
+        name: "Toggle MAKE.md Navigator sizes",
+        callback: () =>
+          void this.setMakeNavigatorSizesShown(
+            !this.settings.showMakeNavigatorSizes
+          )
+      });
+    }
     this.addCommand({
       id: "open-size-ranking",
       name: "Open size ranking",
@@ -76,7 +89,8 @@ export default class FileExplorerSizePlugin extends Plugin {
 
   onunload(): void {
     this.updater?.stop();
-    this.decorator?.stop();
+    this.fileBrowserDecorator?.stop();
+    this.makeNavigatorDecorator?.stop();
     this.removeToolbarActions?.();
   }
 
@@ -86,7 +100,8 @@ export default class FileExplorerSizePlugin extends Plugin {
   }
 
   refreshUi(): void {
-    this.decorator?.refresh();
+    this.fileBrowserDecorator?.refresh();
+    this.makeNavigatorDecorator?.refresh();
     for (const leaf of this.app.workspace.getLeavesOfType(SIZE_RANKING_VIEW)) {
       const view = leaf.view;
       if (view instanceof SizeRankingView) view.refresh();
@@ -125,17 +140,28 @@ export default class FileExplorerSizePlugin extends Plugin {
 
   private async initialize(): Promise<void> {
     await this.rebuild();
-    this.decorator = new FileExplorerDecorator({
-      roots: explorerRoots,
+    this.fileBrowserDecorator = new FileExplorerDecorator({
+      roots: fileBrowserRoots,
       sizeFor: (path, folder) =>
         folder ? this.index.getFolderSize(path) : this.index.getFileSize(path),
       format: (size) => formatBytes(size, this.settings.unit),
       fileWarningBytes: () => this.settings.fileWarningBytes,
       folderWarningBytes: () => this.settings.folderWarningBytes,
-      shown: () => this.settings.showSizes,
-      onToggle: (shown) => void this.setSizesShown(shown)
+      shown: () => this.settings.showFileBrowserSizes,
+      onToggle: (shown) => void this.setFileBrowserSizesShown(shown)
     });
-    this.decorator.start();
+    this.makeNavigatorDecorator = new FileExplorerDecorator({
+      roots: makeNavigatorRoots,
+      sizeFor: (path, folder) =>
+        folder ? this.index.getFolderSize(path) : this.index.getFileSize(path),
+      format: (size) => formatBytes(size, this.settings.unit),
+      fileWarningBytes: () => this.settings.fileWarningBytes,
+      folderWarningBytes: () => this.settings.folderWarningBytes,
+      shown: () => this.settings.showMakeNavigatorSizes,
+      onToggle: () => {}
+    });
+    this.fileBrowserDecorator.start();
+    this.makeNavigatorDecorator.start();
     this.installToolbarActions();
 
     this.updater = new IncrementalUpdater(
@@ -148,7 +174,8 @@ export default class FileExplorerSizePlugin extends Plugin {
 
     this.registerEvent(
       this.app.workspace.on("layout-change", () => {
-        this.decorator?.start();
+        this.fileBrowserDecorator?.start();
+        this.makeNavigatorDecorator?.start();
         this.installToolbarActions();
       })
     );
@@ -163,15 +190,39 @@ export default class FileExplorerSizePlugin extends Plugin {
     );
   }
 
-  private async setSizesShown(shown: boolean): Promise<void> {
-    this.settings.showSizes = shown;
+  async setFileBrowserSizesShown(shown: boolean): Promise<void> {
+    this.settings.showFileBrowserSizes = shown;
     await this.saveSettings();
-    this.decorator?.refresh();
+    this.fileBrowserDecorator?.refresh();
+  }
+
+  async setMakeNavigatorSizesShown(shown: boolean): Promise<void> {
+    this.settings.showMakeNavigatorSizes = shown;
+    await this.saveSettings();
+    this.makeNavigatorDecorator?.refresh();
   }
 
   private installToolbarActions(): void {
     this.removeToolbarActions?.();
-    this.removeToolbarActions = installToggleActions(() => this.decorator?.toggle());
+    this.removeToolbarActions = installToggleActions(() =>
+      this.fileBrowserDecorator?.toggle()
+    );
+  }
+
+  isMakeMdInstalled(): boolean {
+    const plugins = (this.app as unknown as { plugins: unknown })
+      .plugins as {
+      manifests?: Record<string, unknown>;
+    };
+    return Boolean(plugins.manifests?.["make-md"]);
+  }
+
+  isMakeMdEnabled(): boolean {
+    const plugins = (this.app as unknown as { plugins: unknown })
+      .plugins as {
+      enabledPlugins?: Set<string>;
+    };
+    return Boolean(plugins.enabledPlugins?.has("make-md"));
   }
 
   private async openRanking(): Promise<void> {

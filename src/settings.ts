@@ -1,7 +1,8 @@
 import type { SizeUnit } from "./domain/format-size";
 
 export interface FileExplorerSizeSettings {
-  showSizes: boolean;
+  showFileBrowserSizes: boolean;
+  showMakeNavigatorSizes: boolean;
   fileWarningBytes: number;
   folderWarningBytes: number;
   rankingLimit: number;
@@ -10,7 +11,8 @@ export interface FileExplorerSizeSettings {
 }
 
 export const DEFAULT_SETTINGS: FileExplorerSizeSettings = {
-  showSizes: true,
+  showFileBrowserSizes: true,
+  showMakeNavigatorSizes: true,
   fileWarningBytes: 10 * 1024 * 1024,
   folderWarningBytes: 100 * 1024 * 1024,
   rankingLimit: 20,
@@ -28,12 +30,22 @@ function nonNegative(value: unknown, fallback: number): number {
 export function normalizeSettings(
   data: Partial<FileExplorerSizeSettings> | Record<string, unknown>
 ): FileExplorerSizeSettings {
+  const legacyShowSizes =
+    typeof (data as Record<string, unknown>).showSizes === "boolean"
+      ? ((data as Record<string, unknown>).showSizes as boolean)
+      : undefined;
   const unit = VALID_UNITS.has(data.unit as SizeUnit)
     ? (data.unit as SizeUnit)
     : DEFAULT_SETTINGS.unit;
   return {
-    showSizes:
-      typeof data.showSizes === "boolean" ? data.showSizes : DEFAULT_SETTINGS.showSizes,
+    showFileBrowserSizes:
+      typeof data.showFileBrowserSizes === "boolean"
+        ? data.showFileBrowserSizes
+        : legacyShowSizes ?? DEFAULT_SETTINGS.showFileBrowserSizes,
+    showMakeNavigatorSizes:
+      typeof data.showMakeNavigatorSizes === "boolean"
+        ? data.showMakeNavigatorSizes
+        : legacyShowSizes ?? DEFAULT_SETTINGS.showMakeNavigatorSizes,
     fileWarningBytes: nonNegative(
       data.fileWarningBytes,
       DEFAULT_SETTINGS.fileWarningBytes

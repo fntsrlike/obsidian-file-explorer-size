@@ -13,15 +13,32 @@ export class FileExplorerSizeSettingTab extends PluginSettingTab {
     this.containerEl.empty();
 
     new Setting(this.containerEl)
-      .setName("Show sizes")
-      .setDesc("Show file and recursive folder sizes in the file explorer.")
+      .setName("Show sizes in File Browser")
+      .setDesc("Show file and recursive folder sizes in Obsidian's File Browser.")
       .addToggle((toggle) =>
-        toggle.setValue(this.plugin.settings.showSizes).onChange(async (value) => {
-          this.plugin.settings.showSizes = value;
-          await this.plugin.saveSettings();
-          this.plugin.refreshUi();
-        })
+        toggle
+          .setValue(this.plugin.settings.showFileBrowserSizes)
+          .onChange((value) => this.plugin.setFileBrowserSizesShown(value))
       );
+
+    if (this.plugin.isMakeMdInstalled()) {
+      if (this.plugin.isMakeMdEnabled()) {
+        new Setting(this.containerEl)
+          .setName("Show sizes in MAKE.md Navigator")
+          .setDesc("Control size labels in MAKE.md's Navigator independently.")
+          .addToggle((toggle) =>
+            toggle
+              .setValue(this.plugin.settings.showMakeNavigatorSizes)
+              .onChange((value) =>
+                this.plugin.setMakeNavigatorSizesShown(value)
+              )
+          );
+      } else {
+        new Setting(this.containerEl)
+          .setName("MAKE.md Navigator sizes")
+          .setDesc("MAKE.md is installed but not enabled.");
+      }
+    }
 
     this.addMegabyteSetting(
       "File warning threshold",
@@ -100,4 +117,3 @@ export class FileExplorerSizeSettingTab extends PluginSettingTab {
       );
   }
 }
-

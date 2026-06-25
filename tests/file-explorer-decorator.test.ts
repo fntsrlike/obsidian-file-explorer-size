@@ -22,14 +22,10 @@ function explorerFixture(): HTMLElement {
 }
 
 describe("FileExplorerDecorator", () => {
-  it("finds MAKE.md file explorer roots and installs its toolbar action", () => {
+  it("finds MAKE.md roots without installing a toolbar action", () => {
     document.body.innerHTML = `
       <div class="workspace-leaf-content" data-type="mk-path-view">
         <div class="view-actions"><button class="existing-action">Existing</button></div>
-        <div class="mk-main-menu-inner">
-          <div class="mk-main-menu"></div>
-          <button class="mk-main-menu-button" aria-label="New Note"></button>
-        </div>
         <div class="mk-tree-item nav-folder-title" data-path="/">
           <div class="nav-folder-title-content">Vault</div>
         </div>
@@ -37,16 +33,32 @@ describe("FileExplorerDecorator", () => {
     `;
     expect(explorerRoots()).toHaveLength(1);
     const remove = installToggleActions(vi.fn());
+    expect(
+      document.querySelector(
+        '.workspace-leaf-content[data-type="mk-path-view"] .fes-toggle-action'
+      )
+    ).toBeNull();
+    remove();
+    expect(document.querySelector(".fes-toggle-action")).toBeNull();
+    document.body.innerHTML = "";
+  });
+
+  it("installs the size toggle only in the native File Browser toolbar", () => {
+    document.body.innerHTML = `
+      <div class="workspace-leaf-content" data-type="file-explorer">
+        <div class="nav-buttons-container">
+          <button class="existing-action">Existing</button>
+        </div>
+      </div>
+    `;
+    const remove = installToggleActions(vi.fn());
     const toggle = document.querySelector(".fes-toggle-action");
     expect(toggle).not.toBeNull();
     expect(toggle?.textContent).toContain("MB");
     expect(toggle?.innerHTML).toContain('d="M2 5h13M2 10h13M2 15h13"');
     expect(toggle?.innerHTML).toContain('x="11"');
     expect(toggle?.parentElement?.lastElementChild).toBe(toggle);
-    expect(toggle?.parentElement?.classList.contains("mk-main-menu-inner")).toBe(true);
-    expect(toggle?.classList.contains("mk-main-menu-button")).toBe(true);
     remove();
-    expect(document.querySelector(".fes-toggle-action")).toBeNull();
     document.body.innerHTML = "";
   });
 

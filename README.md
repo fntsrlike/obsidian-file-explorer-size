@@ -7,14 +7,16 @@
 - 每個檔案與資料夾右側顯示大小。
 - 資料夾大小包含所有子目錄。
 - 檔案超過 10 MB、資料夾超過 100 MB 時預設以紅字顯示。
-- 檔案瀏覽器工具列可快速切換顯示／隱藏。
+- 原生 File Browser 工具列可快速切換顯示／隱藏。
+- MAKE.md Navigator 使用獨立設定與命令，不在其工具列加入按鈕。
 - 獨立排行側欄，可切換檔案與資料夾前 N 名。
 - 建立、修改、刪除與移動檔案時增量更新。
 - 支援原生檔案瀏覽器及 MAKE.md Navigator。
 
 ## 命令
 
-- `File Explorer Size: Toggle size display`
+- `File Explorer Size: Toggle File Browser sizes`
+- `File Explorer Size: Toggle MAKE.md Navigator sizes`（僅 MAKE.md 已啟用時）
 - `File Explorer Size: Open size ranking`
 - `File Explorer Size: Recalculate all sizes`
 

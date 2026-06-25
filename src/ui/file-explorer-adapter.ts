@@ -9,6 +9,22 @@ export function explorerRoots(): HTMLElement[] {
   ];
 }
 
+export function fileBrowserRoots(): HTMLElement[] {
+  return [
+    ...document.querySelectorAll<HTMLElement>(
+      '.workspace-leaf-content[data-type="file-explorer"]'
+    )
+  ];
+}
+
+export function makeNavigatorRoots(): HTMLElement[] {
+  return [
+    ...document.querySelectorAll<HTMLElement>(
+      '.workspace-leaf-content[data-type="mk-path-view"]'
+    )
+  ];
+}
+
 export function rowsWithin(root: ParentNode): HTMLElement[] {
   const rows: HTMLElement[] = [];
   if (
@@ -31,20 +47,16 @@ export function isFolderRow(row: HTMLElement): boolean {
 
 export function installToggleActions(onClick: () => void): () => void {
   const buttons: HTMLElement[] = [];
-  for (const root of explorerRoots()) {
-    const isMakeNavigator = root.dataset.type === "mk-path-view";
-    const actions = isMakeNavigator
-      ? root.querySelector<HTMLElement>(".mk-main-menu-inner")
-      : root.querySelector<HTMLElement>(".nav-buttons-container") ??
-        root.querySelector<HTMLElement>(".view-actions") ??
-        root
-          .closest<HTMLElement>(".workspace-leaf")
-          ?.querySelector<HTMLElement>(".view-actions");
+  for (const root of fileBrowserRoots()) {
+    const actions =
+      root.querySelector<HTMLElement>(".nav-buttons-container") ??
+      root.querySelector<HTMLElement>(".view-actions") ??
+      root
+        .closest<HTMLElement>(".workspace-leaf")
+        ?.querySelector<HTMLElement>(".view-actions");
     if (!actions || actions.querySelector(".fes-toggle-action")) continue;
     const button = document.createElement("button");
-    button.className = isMakeNavigator
-      ? "mk-main-menu-button fes-toggle-action"
-      : "clickable-icon fes-toggle-action";
+    button.className = "clickable-icon fes-toggle-action";
     button.setAttribute("aria-label", "顯示／隱藏檔案大小");
     button.innerHTML =
       '<svg viewBox="0 0 28 20" width="24" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M2 5h13M2 10h13M2 15h13"/><text x="11" y="13.5" fill="var(--background-secondary)" stroke="var(--background-secondary)" stroke-width="2.5" paint-order="stroke" font-size="7" font-family="sans-serif" font-weight="600">MB</text><text x="11" y="13.5" fill="currentColor" font-size="7" font-family="sans-serif" font-weight="600">MB</text></svg>';
