@@ -36,6 +36,8 @@ describe("FileExplorerDecorator", () => {
     const toggle = document.querySelector(".fes-toggle-action");
     expect(toggle).not.toBeNull();
     expect(toggle?.textContent).toContain("MB");
+    expect(toggle?.innerHTML).toContain('d="M2 5h13M2 10h13M2 15h13"');
+    expect(toggle?.innerHTML).toContain('x="11"');
     expect(toggle?.parentElement?.lastElementChild).toBe(toggle);
     remove();
     expect(document.querySelector(".fes-toggle-action")).toBeNull();
