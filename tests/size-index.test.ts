@@ -27,5 +27,42 @@ describe("SizeIndex", () => {
     ]);
     expect(index.topFiles(2).map((item) => item.path)).toEqual(["a.md", "z.md"]);
   });
-});
 
+  it("increments ancestors for add, modify, and delete", () => {
+    const index = new SizeIndex();
+    index.rebuild([{ path: "a/original.md", size: 10 }]);
+
+    index.upsertFile("a/b/new.md", 20);
+    expect(index.getFolderSize("a")).toBe(30);
+    expect(index.getFolderSize("a/b")).toBe(20);
+
+    index.upsertFile("a/b/new.md", 25);
+    expect(index.getFolderSize("a")).toBe(35);
+
+    expect(index.deleteFile("a/original.md")).toBe(true);
+    expect(index.getFolderSize("a")).toBe(25);
+  });
+
+  it("moves files between folders", () => {
+    const index = new SizeIndex();
+    index.rebuild([{ path: "old/file.md", size: 12 }]);
+    expect(index.renamePath("old/file.md", "new/file.md")).toBe(true);
+    expect(index.getFileSize("old/file.md")).toBeUndefined();
+    expect(index.getFileSize("new/file.md")).toBe(12);
+    expect(index.getFolderSize("old")).toBeUndefined();
+    expect(index.getFolderSize("new")).toBe(12);
+  });
+
+  it("moves folder subtrees", () => {
+    const index = new SizeIndex();
+    index.rebuild([
+      { path: "old/a.md", size: 5 },
+      { path: "old/nested/b.md", size: 7 }
+    ]);
+    expect(index.renamePath("old", "new")).toBe(true);
+    expect(index.getFileSize("new/a.md")).toBe(5);
+    expect(index.getFileSize("new/nested/b.md")).toBe(7);
+    expect(index.getFolderSize("old")).toBeUndefined();
+    expect(index.getFolderSize("new")).toBe(12);
+  });
+});
