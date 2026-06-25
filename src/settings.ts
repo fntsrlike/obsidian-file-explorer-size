@@ -26,7 +26,7 @@ function nonNegative(value: unknown, fallback: number): number {
 }
 
 export function normalizeSettings(
-  data: Partial<FileExplorerSizeSettings> & Record<string, unknown>
+  data: Partial<FileExplorerSizeSettings> | Record<string, unknown>
 ): FileExplorerSizeSettings {
   const unit = VALID_UNITS.has(data.unit as SizeUnit)
     ? (data.unit as SizeUnit)
@@ -56,4 +56,3 @@ export function normalizeSettings(
         : DEFAULT_SETTINGS.includeHidden
   };
 }
-

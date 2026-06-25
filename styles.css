@@ -15,3 +15,70 @@
   display: none;
 }
 
+.nav-file-title,
+.nav-folder-title {
+  display: flex;
+}
+
+.nav-file-title-content,
+.nav-folder-title-content {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fes-ranking-header,
+.fes-ranking-row {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2-2);
+}
+
+.fes-ranking-header {
+  justify-content: space-between;
+  margin-bottom: var(--size-4-2);
+}
+
+.fes-ranking-tabs {
+  display: flex;
+  gap: var(--size-2-1);
+}
+
+.fes-ranking-tab {
+  padding: var(--size-2-1) var(--size-2-3);
+}
+
+.fes-ranking-tab.is-active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.fes-ranking-row {
+  padding: var(--size-2-2);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+}
+
+.fes-ranking-row:hover {
+  background: var(--background-modifier-hover);
+}
+
+.fes-ranking-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.fes-ranking-name,
+.fes-ranking-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fes-ranking-path,
+.fes-ranking-size,
+.fes-ranking-empty {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
