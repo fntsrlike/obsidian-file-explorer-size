@@ -25,7 +25,7 @@ describe("FileExplorerDecorator", () => {
   it("finds MAKE.md file explorer roots and installs its toolbar action", () => {
     document.body.innerHTML = `
       <div class="workspace-leaf-content" data-type="mk-path-view">
-        <div class="view-actions"></div>
+        <div class="view-actions"><button class="existing-action">Existing</button></div>
         <div class="mk-tree-item nav-folder-title" data-path="/">
           <div class="nav-folder-title-content">Vault</div>
         </div>
@@ -33,7 +33,10 @@ describe("FileExplorerDecorator", () => {
     `;
     expect(explorerRoots()).toHaveLength(1);
     const remove = installToggleActions(vi.fn());
-    expect(document.querySelector(".fes-toggle-action")).not.toBeNull();
+    const toggle = document.querySelector(".fes-toggle-action");
+    expect(toggle).not.toBeNull();
+    expect(toggle?.textContent).toContain("MB");
+    expect(toggle?.parentElement?.lastElementChild).toBe(toggle);
     remove();
     expect(document.querySelector(".fes-toggle-action")).toBeNull();
     document.body.innerHTML = "";

@@ -39,11 +39,11 @@ export function installToggleActions(onClick: () => void): () => void {
     if (!actions || actions.querySelector(".fes-toggle-action")) continue;
     const button = document.createElement("button");
     button.className = "clickable-icon fes-toggle-action";
-    button.setAttribute("aria-label", "Toggle file and folder sizes");
+    button.setAttribute("aria-label", "顯示／隱藏檔案大小");
     button.innerHTML =
-      '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M4 7h16M4 12h10M4 17h7"/><path fill="none" stroke="currentColor" stroke-width="2" d="M18 11v7m-3-3h6"/></svg>';
+      '<svg viewBox="0 0 28 20" width="24" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M2 5h8M2 10h8M2 15h8"/><text x="13" y="13.5" fill="currentColor" font-size="7" font-family="sans-serif" font-weight="600">MB</text></svg>';
     button.addEventListener("click", onClick);
-    actions.prepend(button);
+    actions.append(button);
     buttons.push(button);
   }
   return () => buttons.forEach((button) => button.remove());
