@@ -1,29 +1,52 @@
 # File Explorer Size
 
-在 Obsidian 檔案瀏覽器顯示檔案大小與遞迴資料夾總大小，並提供最大項目排行側欄。
+File Explorer Size is an Obsidian desktop plugin that shows file, folder, and note group sizes directly in the File Explorer, with a ranking view for finding the largest items in your vault.
 
-## 功能
+## Features
 
-- 每個檔案與資料夾右側顯示大小。
-- 可切換「實體檔案大小」或「筆記群組大小」顯示模式。
-- 筆記群組大小 = Markdown 筆記本身 + 直接連結的非 Markdown 檔案；`[[另一篇筆記]]` 不會遞迴計入。
-- 筆記群組可選「只計算嵌入附件」或「計算所有直接非筆記檔案連結」。
-- 資料夾大小包含所有子目錄，且永遠以實體遞迴大小計算，避免重複計入共享附件。
-- 檔案超過 10 MB、資料夾超過 100 MB 時預設以紅字顯示。
-- 原生 File Browser 工具列可快速切換顯示／隱藏。
-- MAKE.md Navigator 使用獨立設定與命令，不在其工具列加入按鈕。
-- 獨立排行側欄，可切換實體檔案、筆記群組與實際含檔目錄前 N 名；目錄排行不重複列出只繼承子目錄大小的祖先目錄。
-- 建立、修改、刪除與移動檔案時更新；筆記連結 metadata 改變時也會同步更新筆記群組大小。
-- 支援原生檔案瀏覽器及 MAKE.md Navigator。
+- Show file sizes and recursive folder sizes in Obsidian's native File Explorer.
+- Toggle size labels quickly from the File Explorer toolbar.
+- Highlight large files and folders. The default thresholds are 10 MB for files and 100 MB for folders.
+- Switch Markdown notes between physical file size and note group size.
+- Calculate note group size as the Markdown note itself plus directly linked non-Markdown files.
+- Choose whether note groups count only embedded attachments or all direct non-note file links.
+- Keep note group depth at 1: links to other Markdown notes are not recursively counted.
+- Deduplicate repeated links to the same attachment within a note group.
+- Open a ranking view with tabs for physical files, note groups, and folders that directly contain large files.
+- Expand note groups in the ranking view to inspect the note file and its counted attachments.
+- Optionally support MAKE.md Navigator when MAKE.md is installed and enabled.
 
-## 命令
+## How folder sizes work
 
-- `File Explorer Size: Toggle File Browser sizes`
-- `File Explorer Size: Toggle MAKE.md Navigator sizes`（僅 MAKE.md 已啟用時）
-- `File Explorer Size: Open size ranking`
-- `File Explorer Size: Recalculate all sizes`
+The File Explorer labels use recursive folder sizes, so a folder includes everything inside its subfolders.
 
-## 開發
+The ranking view's **Folders** tab uses a different rule: it ranks folders by the files directly inside each folder, excluding subfolders. This avoids repeated rankings where a deeply nested large folder causes all of its ancestors to appear in the top list.
+
+## How note group sizes work
+
+A note group contains:
+
+1. The Markdown note file itself.
+2. Directly linked non-Markdown files, such as images, PDFs, videos, or slide decks.
+
+Markdown note links are not counted recursively. Repeated links to the same attachment inside one note are counted once.
+
+## Commands
+
+- `Toggle File Browser sizes`
+- `Toggle MAKE.md Navigator sizes` — only available when MAKE.md is enabled
+- `Open size ranking`
+- `Recalculate all sizes`
+
+## Optional MAKE.md support
+
+If MAKE.md is enabled, this plugin can also show size labels in MAKE.md Navigator. MAKE.md support is optional. If MAKE.md is not enabled, related settings and commands are hidden.
+
+## Desktop only
+
+This plugin is marked as desktop only because it depends on Obsidian desktop File Explorer DOM structures.
+
+## Development
 
 ```bash
 pnpm install
@@ -32,9 +55,17 @@ pnpm lint
 pnpm build
 ```
 
-此外掛目錄本身是獨立 Git repository。
+The release assets are:
 
-## 已知限制
+- `manifest.json`
+- `main.js`
+- `styles.css`
 
-- `.obsidian` 等隱藏設定內容不在 Obsidian Vault API 的一般檔案清單中，因此第一版不納入統計。
-- 檔案瀏覽器 DOM 並非正式公開 API；若 Obsidian 或 MAKE.md 大幅改版，可能需要更新 adapter。
+## Known limitations
+
+- Hidden configuration content such as `.obsidian` is not included because the plugin uses Obsidian's Vault API.
+- The File Explorer DOM is not a formal public API. Future Obsidian or MAKE.md changes may require adapter updates.
+
+## License
+
+MIT
