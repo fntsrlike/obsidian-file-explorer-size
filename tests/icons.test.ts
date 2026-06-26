@@ -19,5 +19,6 @@ describe("file explorer size icons", () => {
     expect(sizeRankingIconSvg).toContain('x1="50"');
     expect(sizeRankingIconSvg).toContain('x1="75"');
     expect(sizeRankingIconSvg).toContain('font-size="36"');
+    expect(sizeRankingIconSvg).toContain('y="54"');
   });
 });
