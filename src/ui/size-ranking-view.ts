@@ -4,6 +4,7 @@ import type { NoteGroupIndex } from "../domain/note-group-index";
 import type { SizeIndex } from "../domain/size-index";
 import type { FileExplorerSizeSettings } from "../settings";
 import { SIZE_RANKING_ICON_ID } from "./icons";
+import { noteGroupTreeChildren, type NoteGroupTreeChild } from "./note-group-tree";
 import { displayNameForPath } from "./ranking-paths";
 import { rankingItemsForMode, type RankingItem, type RankingMode } from "./ranking-items";
 
@@ -20,6 +21,7 @@ export interface RankingViewHost {
 
 export class SizeRankingView extends ItemView {
   private mode: RankingMode = "physical-files";
+  private readonly expandedNoteGroups = new Set<string>();
 
   constructor(leaf: WorkspaceLeaf, private readonly host: RankingViewHost) {
     super(leaf);
@@ -76,7 +78,12 @@ export class SizeRankingView extends ItemView {
       return;
     }
     const list = this.contentEl.createDiv({ cls: "fes-ranking-list" });
-    for (const item of items) this.createRow(list, item);
+    for (const item of items) {
+      this.createRow(list, item);
+      if (item.kind === "note-group" && this.expandedNoteGroups.has(item.path)) {
+        this.createNoteGroupChildren(list, item.path);
+      }
+    }
   }
 
   private createTab(
@@ -96,8 +103,11 @@ export class SizeRankingView extends ItemView {
 
   private createRow(parent: HTMLElement, item: RankingItem): void {
     const row = parent.createDiv({ cls: "fes-ranking-row" });
-    const text = row.createDiv({ cls: "fes-ranking-text" });
     row.setAttribute("aria-label", item.path);
+    if (item.kind === "note-group") {
+      this.createNoteGroupToggle(row, item.path);
+    }
+    const text = row.createDiv({ cls: "fes-ranking-text" });
     const name = displayNameForPath(item.path);
     text.createDiv({ cls: "fes-ranking-name", text: name });
     row.createSpan({
@@ -108,6 +118,51 @@ export class SizeRankingView extends ItemView {
       if (item.kind === "folder") void this.host.revealFolder(item.path);
       else void this.host.openFile(item.path);
     });
+  }
+
+  private createNoteGroupToggle(parent: HTMLElement, notePath: string): void {
+    const expanded = this.expandedNoteGroups.has(notePath);
+    const toggle = parent.createEl("button", {
+      cls: "clickable-icon fes-ranking-expander",
+      attr: {
+        "aria-label": expanded ? "Collapse note group" : "Expand note group",
+        "aria-expanded": String(expanded)
+      }
+    });
+    setIcon(toggle, expanded ? "chevron-down" : "chevron-right");
+    toggle.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (expanded) this.expandedNoteGroups.delete(notePath);
+      else this.expandedNoteGroups.add(notePath);
+      this.render();
+    });
+  }
+
+  private createNoteGroupChildren(parent: HTMLElement, notePath: string): void {
+    const entry = this.host.noteGroupIndex.getEntry(notePath);
+    if (!entry) return;
+    for (const child of noteGroupTreeChildren(entry, (path) =>
+      this.host.index.getFileSize(path)
+    )) {
+      this.createNoteGroupChildRow(parent, child);
+    }
+  }
+
+  private createNoteGroupChildRow(
+    parent: HTMLElement,
+    child: NoteGroupTreeChild
+  ): void {
+    const row = parent.createDiv({
+      cls: `fes-ranking-row fes-ranking-child is-${child.kind}`
+    });
+    row.setAttribute("aria-label", child.path);
+    const text = row.createDiv({ cls: "fes-ranking-text" });
+    text.createDiv({ cls: "fes-ranking-name", text: displayNameForPath(child.path) });
+    row.createSpan({
+      cls: "fes-ranking-size",
+      text: formatBytes(child.size, this.host.settings.unit)
+    });
+    row.addEventListener("click", () => void this.host.openFile(child.path));
   }
 }
 

@@ -70,6 +70,28 @@
   background: var(--background-modifier-hover);
 }
 
+.fes-ranking-expander {
+  --icon-size: 14px;
+  align-self: center;
+  flex: 0 0 auto;
+  padding: 0;
+}
+
+.fes-ranking-child {
+  margin-inline-start: var(--size-4-4);
+  padding-block: var(--size-2-1);
+}
+
+.fes-ranking-child .fes-ranking-name,
+.fes-ranking-child .fes-ranking-size {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.fes-ranking-child.is-note .fes-ranking-name {
+  color: var(--text-faint);
+}
+
 .fes-ranking-text {
   min-width: 0;
   flex: 1;
