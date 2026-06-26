@@ -1,4 +1,4 @@
-import { ancestorFolders } from "./paths";
+import { ancestorFolders, parentPath } from "./paths";
 
 export interface SizedPath {
   path: string;
@@ -79,6 +79,16 @@ export class SizeIndex {
   topFolders(limit: number): SizedPath[] {
     const folders = new Map(this.folderSizes);
     folders.delete("");
+    return rankedEntries(folders, limit);
+  }
+
+  topContainingFolders(limit: number): SizedPath[] {
+    const folders = new Map<string, number>();
+    for (const [path, size] of this.fileSizes) {
+      const folder = parentPath(path);
+      if (!folder) continue;
+      folders.set(folder, (folders.get(folder) ?? 0) + size);
+    }
     return rankedEntries(folders, limit);
   }
 

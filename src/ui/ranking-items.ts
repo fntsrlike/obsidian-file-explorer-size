@@ -31,6 +31,6 @@ export function rankingItemsForMode(
       }));
   }
   return sizeIndex
-    .topFolders(limit)
+    .topContainingFolders(limit)
     .map((item) => ({ ...item, kind: "folder" }));
 }
