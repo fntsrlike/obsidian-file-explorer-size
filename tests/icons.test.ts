@@ -18,6 +18,6 @@ describe("file explorer size icons", () => {
     expect(sizeRankingIconSvg).toContain('x1="25"');
     expect(sizeRankingIconSvg).toContain('x1="50"');
     expect(sizeRankingIconSvg).toContain('x1="75"');
-    expect(sizeRankingIconSvg).toContain('font-size="28"');
+    expect(sizeRankingIconSvg).toContain('font-size="36"');
   });
 });
