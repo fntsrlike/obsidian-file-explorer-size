@@ -3,6 +3,7 @@ import { formatBytes } from "../domain/format-size";
 import type { NoteGroupIndex } from "../domain/note-group-index";
 import type { SizeIndex } from "../domain/size-index";
 import type { FileExplorerSizeSettings } from "../settings";
+import { SIZE_RANKING_ICON_ID } from "./icons";
 import { rankingItemsForMode, type RankingItem, type RankingMode } from "./ranking-items";
 
 export const SIZE_RANKING_VIEW = "file-explorer-size-ranking";
@@ -32,7 +33,7 @@ export class SizeRankingView extends ItemView {
   }
 
   getIcon(): string {
-    return "chart-no-axes-column-increasing";
+    return SIZE_RANKING_ICON_ID;
   }
 
   async onOpen(): Promise<void> {

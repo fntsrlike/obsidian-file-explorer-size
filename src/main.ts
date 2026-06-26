@@ -1,6 +1,7 @@
 import {
   Notice,
   Plugin,
+  addIcon,
   TFile,
   type EventRef,
   type TAbstractFile
@@ -31,6 +32,10 @@ import {
 } from "./ui/file-explorer-adapter";
 import { FileExplorerDecorator } from "./ui/file-explorer-decorator";
 import {
+  SIZE_RANKING_ICON_ID,
+  sizeRankingIconSvg
+} from "./ui/icons";
+import {
   SIZE_RANKING_VIEW,
   SizeRankingView
 } from "./ui/size-ranking-view";
@@ -50,6 +55,7 @@ export default class FileExplorerSizePlugin extends Plugin {
   private rebuildPromise: Promise<void> | undefined;
 
   async onload(): Promise<void> {
+    addIcon(SIZE_RANKING_ICON_ID, sizeRankingIconSvg);
     this.settings = normalizeSettings((await this.loadData()) ?? {});
     this.addSettingTab(new FileExplorerSizeSettingTab(this.app, this));
     this.registerView(
@@ -84,7 +90,7 @@ export default class FileExplorerSizePlugin extends Plugin {
       callback: () => void this.recalculate()
     });
     this.addRibbonIcon(
-      "chart-no-axes-column-increasing",
+      SIZE_RANKING_ICON_ID,
       "Open size ranking",
       () => void this.openRanking()
     );
