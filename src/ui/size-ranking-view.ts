@@ -1,12 +1,15 @@
 import { ItemView, setIcon, type WorkspaceLeaf } from "obsidian";
 import { formatBytes } from "../domain/format-size";
-import type { SizeIndex, SizedPath } from "../domain/size-index";
+import type { NoteGroupIndex } from "../domain/note-group-index";
+import type { SizeIndex } from "../domain/size-index";
 import type { FileExplorerSizeSettings } from "../settings";
+import { rankingItemsForMode, type RankingItem, type RankingMode } from "./ranking-items";
 
 export const SIZE_RANKING_VIEW = "file-explorer-size-ranking";
 
 export interface RankingViewHost {
   index: SizeIndex;
+  noteGroupIndex: NoteGroupIndex;
   settings: FileExplorerSizeSettings;
   openFile(path: string): Promise<void>;
   revealFolder(path: string): Promise<void>;
@@ -14,7 +17,7 @@ export interface RankingViewHost {
 }
 
 export class SizeRankingView extends ItemView {
-  private mode: "files" | "folders" = "files";
+  private mode: RankingMode = "physical-files";
 
   constructor(leaf: WorkspaceLeaf, private readonly host: RankingViewHost) {
     super(leaf);
@@ -46,8 +49,9 @@ export class SizeRankingView extends ItemView {
 
     const header = this.contentEl.createDiv({ cls: "fes-ranking-header" });
     const tabs = header.createDiv({ cls: "fes-ranking-tabs" });
-    this.createTab(tabs, "files", "Files");
-    this.createTab(tabs, "folders", "Folders");
+    this.createTab(tabs, "physical-files", "Files");
+    this.createTab(tabs, "note-groups", "Note groups");
+    this.createTab(tabs, "physical-folders", "Folders");
     const recalculate = header.createEl("button", {
       cls: "clickable-icon",
       attr: { "aria-label": "Recalculate all sizes" }
@@ -55,10 +59,12 @@ export class SizeRankingView extends ItemView {
     setIcon(recalculate, "refresh-cw");
     recalculate.addEventListener("click", () => void this.host.recalculate());
 
-    const items =
-      this.mode === "files"
-        ? this.host.index.topFiles(this.host.settings.rankingLimit)
-        : this.host.index.topFolders(this.host.settings.rankingLimit);
+    const items = rankingItemsForMode(
+      this.mode,
+      this.host.index,
+      this.host.noteGroupIndex,
+      this.host.settings.rankingLimit
+    );
 
     if (items.length === 0) {
       this.contentEl.createDiv({
@@ -73,7 +79,7 @@ export class SizeRankingView extends ItemView {
 
   private createTab(
     parent: HTMLElement,
-    mode: "files" | "folders",
+    mode: RankingMode,
     label: string
   ): void {
     const button = parent.createEl("button", {
@@ -86,7 +92,7 @@ export class SizeRankingView extends ItemView {
     });
   }
 
-  private createRow(parent: HTMLElement, item: SizedPath): void {
+  private createRow(parent: HTMLElement, item: RankingItem): void {
     const row = parent.createDiv({ cls: "fes-ranking-row" });
     const text = row.createDiv({ cls: "fes-ranking-text" });
     const name = item.path.split("/").pop() ?? item.path;
@@ -97,8 +103,8 @@ export class SizeRankingView extends ItemView {
       text: formatBytes(item.size, this.host.settings.unit)
     });
     row.addEventListener("click", () => {
-      if (this.mode === "files") void this.host.openFile(item.path);
-      else void this.host.revealFolder(item.path);
+      if (item.kind === "folder") void this.host.revealFolder(item.path);
+      else void this.host.openFile(item.path);
     });
   }
 }
