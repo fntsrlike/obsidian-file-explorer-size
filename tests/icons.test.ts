@@ -15,8 +15,9 @@ describe("file explorer size icons", () => {
   it("uses the existing ranking chart shape with an MB overlay for the ranking tab", () => {
     expect(SIZE_RANKING_ICON_ID).toBe("file-explorer-size-ranking-mb");
     expect(sizeRankingIconSvg).toContain("MB");
-    expect(sizeRankingIconSvg).toContain('x1="6"');
-    expect(sizeRankingIconSvg).toContain('x1="12"');
-    expect(sizeRankingIconSvg).toContain('x1="18"');
+    expect(sizeRankingIconSvg).toContain('x1="25"');
+    expect(sizeRankingIconSvg).toContain('x1="50"');
+    expect(sizeRankingIconSvg).toContain('x1="75"');
+    expect(sizeRankingIconSvg).toContain('font-size="28"');
   });
 });
