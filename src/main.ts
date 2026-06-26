@@ -5,7 +5,12 @@ import {
   type EventRef,
   type TAbstractFile
 } from "obsidian";
+import { resolveDisplaySize } from "./domain/display-size";
 import { formatBytes } from "./domain/format-size";
+import {
+  NoteGroupIndex,
+  type NoteGroupLink
+} from "./domain/note-group-index";
 import { SizeIndex } from "./domain/size-index";
 import {
   DEFAULT_SETTINGS,
@@ -18,6 +23,7 @@ import {
   type VaultEventName,
   type VaultFileEventSource
 } from "./services/incremental-updater";
+import { extractNoteGroupLinksFromCache } from "./services/note-link-extractor";
 import {
   fileBrowserRoots,
   installToggleActions,
@@ -36,6 +42,7 @@ interface FileExplorerViewLike {
 export default class FileExplorerSizePlugin extends Plugin {
   settings: FileExplorerSizeSettings = { ...DEFAULT_SETTINGS };
   readonly index = new SizeIndex();
+  readonly noteGroupIndex = new NoteGroupIndex();
   private fileBrowserDecorator: FileExplorerDecorator | undefined;
   private makeNavigatorDecorator: FileExplorerDecorator | undefined;
   private updater: IncrementalUpdater | undefined;
@@ -109,15 +116,19 @@ export default class FileExplorerSizePlugin extends Plugin {
   }
 
   async recalculate(): Promise<void> {
+    await this.rebuildAndRefresh({ notify: true });
+  }
+
+  private async rebuildAndRefresh(options?: { notify?: boolean }): Promise<void> {
     if (this.rebuildPromise) return this.rebuildPromise;
     this.rebuildPromise = this.rebuild()
       .then(() => {
         this.refreshUi();
-        new Notice("File and folder sizes recalculated.");
+        if (options?.notify) new Notice("File and folder sizes recalculated.");
       })
       .catch((error: unknown) => {
         console.error("File Explorer Size: rebuild failed", error);
-        new Notice("Failed to recalculate file sizes.");
+        if (options?.notify) new Notice("Failed to recalculate file sizes.");
       })
       .finally(() => {
         this.rebuildPromise = undefined;
@@ -142,8 +153,7 @@ export default class FileExplorerSizePlugin extends Plugin {
     await this.rebuild();
     this.fileBrowserDecorator = new FileExplorerDecorator({
       roots: fileBrowserRoots,
-      sizeFor: (path, folder) =>
-        folder ? this.index.getFolderSize(path) : this.index.getFileSize(path),
+      sizeFor: (path, folder) => this.getDisplaySize(path, folder),
       format: (size) => formatBytes(size, this.settings.unit),
       fileWarningBytes: () => this.settings.fileWarningBytes,
       folderWarningBytes: () => this.settings.folderWarningBytes,
@@ -152,8 +162,7 @@ export default class FileExplorerSizePlugin extends Plugin {
     });
     this.makeNavigatorDecorator = new FileExplorerDecorator({
       roots: makeNavigatorRoots,
-      sizeFor: (path, folder) =>
-        folder ? this.index.getFolderSize(path) : this.index.getFileSize(path),
+      sizeFor: (path, folder) => this.getDisplaySize(path, folder),
       format: (size) => formatBytes(size, this.settings.unit),
       fileWarningBytes: () => this.settings.fileWarningBytes,
       folderWarningBytes: () => this.settings.folderWarningBytes,
@@ -167,8 +176,11 @@ export default class FileExplorerSizePlugin extends Plugin {
     this.updater = new IncrementalUpdater(
       this.createEventSource(),
       this.index,
-      () => this.refreshUi(),
-      () => void this.recalculate()
+      () => {
+        this.rebuildNoteGroups();
+        this.refreshUi();
+      },
+      () => void this.rebuildAndRefresh()
     );
     this.updater.start();
 
@@ -179,15 +191,67 @@ export default class FileExplorerSizePlugin extends Plugin {
         this.installToolbarActions();
       })
     );
+    this.registerEvent(
+      this.app.metadataCache.on("changed", (file) => {
+        if (file.extension === "md") {
+          this.rebuildNoteGroups();
+          this.refreshUi();
+        }
+      })
+    );
   }
 
   private async rebuild(): Promise<void> {
+    const files = this.app.vault.getFiles();
     this.index.rebuild(
-      this.app.vault.getFiles().map((file) => ({
+      files.map((file) => ({
         path: file.path,
         size: file.stat.size
       }))
     );
+    this.rebuildNoteGroups(files);
+  }
+
+  private rebuildNoteGroups(files = this.app.vault.getFiles()): void {
+    this.noteGroupIndex.rebuild({
+      notes: files.filter((file) => file.extension === "md").map((file) => file.path),
+      fileSize: (path) => this.index.getFileSize(path),
+      linksByNote: this.extractNoteGroupLinks(files),
+      linkMode: this.settings.noteGroupLinkMode
+    });
+  }
+
+  private getDisplaySize(path: string, folder: boolean): number | undefined {
+    return resolveDisplaySize({
+      path,
+      folder,
+      mode: this.settings.sizeDisplayMode,
+      physicalSize: (targetPath, targetFolder) =>
+        targetFolder
+          ? this.index.getFolderSize(targetPath)
+          : this.index.getFileSize(targetPath),
+      noteGroupSize: (targetPath) =>
+        this.noteGroupIndex.getNoteGroupSize(targetPath)
+    });
+  }
+
+  private extractNoteGroupLinks(files: TFile[]): Map<string, NoteGroupLink[]> {
+    const linksByNote = new Map<string, NoteGroupLink[]>();
+    for (const note of files.filter((file) => file.extension === "md")) {
+      const cache = this.app.metadataCache.getFileCache(note);
+      const links: NoteGroupLink[] = [];
+      for (const link of extractNoteGroupLinksFromCache(cache)) {
+        const target = this.app.metadataCache.getFirstLinkpathDest(
+          link.linktext,
+          note.path
+        );
+        if (target instanceof TFile) {
+          links.push({ path: target.path, embedded: link.embedded });
+        }
+      }
+      linksByNote.set(note.path, links);
+    }
+    return linksByNote;
   }
 
   async setFileBrowserSizesShown(shown: boolean): Promise<void> {
