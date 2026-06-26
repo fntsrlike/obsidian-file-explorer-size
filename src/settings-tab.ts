@@ -2,6 +2,7 @@ import { App, PluginSettingTab, Setting } from "obsidian";
 import type FileExplorerSizePlugin from "./main";
 import type { SizeUnit } from "./domain/format-size";
 import type { NoteGroupLinkMode, SizeDisplayMode } from "./settings";
+import { shouldShowMakeNavigatorSettings } from "./settings-visibility";
 
 const MIB = 1024 * 1024;
 
@@ -22,23 +23,22 @@ export class FileExplorerSizeSettingTab extends PluginSettingTab {
           .onChange((value) => this.plugin.setFileBrowserSizesShown(value))
       );
 
-    if (this.plugin.isMakeMdInstalled()) {
-      if (this.plugin.isMakeMdEnabled()) {
-        new Setting(this.containerEl)
-          .setName("Show sizes in MAKE.md Navigator")
-          .setDesc("Control size labels in MAKE.md's Navigator independently.")
-          .addToggle((toggle) =>
-            toggle
-              .setValue(this.plugin.settings.showMakeNavigatorSizes)
-              .onChange((value) =>
-                this.plugin.setMakeNavigatorSizesShown(value)
-              )
-          );
-      } else {
-        new Setting(this.containerEl)
-          .setName("MAKE.md Navigator sizes")
-          .setDesc("MAKE.md is installed but not enabled.");
-      }
+    if (
+      shouldShowMakeNavigatorSettings({
+        installed: this.plugin.isMakeMdInstalled(),
+        enabled: this.plugin.isMakeMdEnabled()
+      })
+    ) {
+      new Setting(this.containerEl)
+        .setName("Show sizes in MAKE.md Navigator")
+        .setDesc("Control size labels in MAKE.md's Navigator independently.")
+        .addToggle((toggle) =>
+          toggle
+            .setValue(this.plugin.settings.showMakeNavigatorSizes)
+            .onChange((value) =>
+              this.plugin.setMakeNavigatorSizesShown(value)
+            )
+        );
     }
 
     new Setting(this.containerEl)
