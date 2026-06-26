@@ -4,7 +4,7 @@ import type { NoteGroupIndex } from "../domain/note-group-index";
 import type { SizeIndex } from "../domain/size-index";
 import type { FileExplorerSizeSettings } from "../settings";
 import { SIZE_RANKING_ICON_ID } from "./icons";
-import { displayNameForPath, parentHintForPath } from "./ranking-paths";
+import { displayNameForPath } from "./ranking-paths";
 import { rankingItemsForMode, type RankingItem, type RankingMode } from "./ranking-items";
 
 export const SIZE_RANKING_VIEW = "file-explorer-size-ranking";
@@ -97,13 +97,9 @@ export class SizeRankingView extends ItemView {
   private createRow(parent: HTMLElement, item: RankingItem): void {
     const row = parent.createDiv({ cls: "fes-ranking-row" });
     const text = row.createDiv({ cls: "fes-ranking-text" });
-    row.setAttribute("title", item.path);
+    row.setAttribute("aria-label", item.path);
     const name = displayNameForPath(item.path);
-    const parentHint = parentHintForPath(item.path);
     text.createDiv({ cls: "fes-ranking-name", text: name });
-    if (parentHint) {
-      text.createDiv({ cls: "fes-ranking-path", text: parentHint });
-    }
     row.createSpan({
       cls: "fes-ranking-size",
       text: formatBytes(item.size, this.host.settings.unit)

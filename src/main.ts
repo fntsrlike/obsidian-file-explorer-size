@@ -4,7 +4,8 @@ import {
   addIcon,
   TFile,
   type EventRef,
-  type TAbstractFile
+  type TAbstractFile,
+  type WorkspaceLeaf
 } from "obsidian";
 import { resolveDisplaySize } from "./domain/display-size";
 import { formatBytes } from "./domain/format-size";
@@ -150,8 +151,14 @@ export default class FileExplorerSizePlugin extends Plugin {
   async revealFolder(path: string): Promise<void> {
     const folder = this.app.vault.getAbstractFileByPath(path);
     if (!folder) return;
-    const leaf = this.app.workspace.getLeavesOfType("file-explorer")[0];
-    const view = leaf?.view as unknown as FileExplorerViewLike | undefined;
+    let leaf: WorkspaceLeaf | undefined = this.app.workspace.getLeavesOfType("file-explorer")[0];
+    if (!leaf) {
+      leaf = this.app.workspace.getLeftLeaf(false) ?? undefined;
+      await leaf?.setViewState({ type: "file-explorer", active: true });
+    }
+    if (!leaf) return;
+    this.app.workspace.revealLeaf(leaf);
+    const view = leaf.view as unknown as FileExplorerViewLike | undefined;
     if (view?.revealInFolder) await view.revealInFolder(folder);
   }
 
