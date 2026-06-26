@@ -40,6 +40,7 @@ import {
   SIZE_RANKING_VIEW,
   SizeRankingView
 } from "./ui/size-ranking-view";
+import { findNativeFileExplorerLeaf } from "./ui/workspace-leaves";
 
 interface FileExplorerViewLike {
   revealInFolder?: (file: TAbstractFile) => Promise<void> | void;
@@ -151,7 +152,7 @@ export default class FileExplorerSizePlugin extends Plugin {
   async revealFolder(path: string): Promise<void> {
     const folder = this.app.vault.getAbstractFileByPath(path);
     if (!folder) return;
-    let leaf: WorkspaceLeaf | undefined = this.app.workspace.getLeavesOfType("file-explorer")[0];
+    let leaf: WorkspaceLeaf | undefined = findNativeFileExplorerLeaf(this.app.workspace);
     if (!leaf) {
       leaf = this.app.workspace.getLeftLeaf(false) ?? undefined;
       await leaf?.setViewState({ type: "file-explorer", active: true });
