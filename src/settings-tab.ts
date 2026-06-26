@@ -1,6 +1,7 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import type FileExplorerSizePlugin from "./main";
 import type { SizeUnit } from "./domain/format-size";
+import type { NoteGroupLinkMode, SizeDisplayMode } from "./settings";
 
 const MIB = 1024 * 1024;
 
@@ -39,6 +40,37 @@ export class FileExplorerSizeSettingTab extends PluginSettingTab {
           .setDesc("MAKE.md is installed but not enabled.");
       }
     }
+
+    new Setting(this.containerEl)
+      .setName("Size display mode")
+      .setDesc("Choose whether notes show physical size or note group size.")
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("physical", "Physical file size")
+          .addOption("note-group", "Note group size")
+          .setValue(this.plugin.settings.sizeDisplayMode)
+          .onChange(async (value) => {
+            this.plugin.settings.sizeDisplayMode = value as SizeDisplayMode;
+            await this.plugin.saveSettings();
+            this.plugin.refreshUi();
+          })
+      );
+
+    new Setting(this.containerEl)
+      .setName("Note group link mode")
+      .setDesc("Choose which direct non-note links count toward note groups.")
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("embedded-only", "Embedded attachments only")
+          .addOption("all-direct-non-note", "All direct non-note file links")
+          .setValue(this.plugin.settings.noteGroupLinkMode)
+          .onChange(async (value) => {
+            this.plugin.settings.noteGroupLinkMode =
+              value as NoteGroupLinkMode;
+            await this.plugin.saveSettings();
+            await this.plugin.recalculate();
+          })
+      );
 
     this.addMegabyteSetting(
       "File warning threshold",

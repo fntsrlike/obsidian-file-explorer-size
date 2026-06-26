@@ -14,6 +14,11 @@ describe("settings", () => {
     });
   });
 
+  it("defaults to physical size display and all direct non-note links", () => {
+    expect(DEFAULT_SETTINGS.sizeDisplayMode).toBe("physical");
+    expect(DEFAULT_SETTINGS.noteGroupLinkMode).toBe("all-direct-non-note");
+  });
+
   it("migrates the legacy shared visibility setting", () => {
     expect(normalizeSettings({ showSizes: false })).toMatchObject({
       showFileBrowserSizes: false,
@@ -32,5 +37,16 @@ describe("settings", () => {
     expect(settings.folderWarningBytes).toBe(DEFAULT_SETTINGS.folderWarningBytes);
     expect(settings.rankingLimit).toBe(500);
     expect(settings.unit).toBe("auto");
+    expect(settings.sizeDisplayMode).toBe("physical");
+    expect(settings.noteGroupLinkMode).toBe("all-direct-non-note");
+  });
+
+  it("keeps valid note group modes", () => {
+    const settings = normalizeSettings({
+      sizeDisplayMode: "note-group",
+      noteGroupLinkMode: "embedded-only"
+    });
+    expect(settings.sizeDisplayMode).toBe("note-group");
+    expect(settings.noteGroupLinkMode).toBe("embedded-only");
   });
 });
