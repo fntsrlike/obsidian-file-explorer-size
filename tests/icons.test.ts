@@ -16,6 +16,7 @@ describe("file explorer size icons", () => {
     expect(SIZE_RANKING_ICON_ID).toBe("file-explorer-size-ranking-mb");
     expect(sizeRankingIconSvg).toContain("MB");
     expect(sizeRankingIconSvg).toContain('x1="25"');
+    expect(sizeRankingIconSvg).toContain('y2="74"');
     expect(sizeRankingIconSvg).toContain('x1="50"');
     expect(sizeRankingIconSvg).toContain('x1="75"');
     expect(sizeRankingIconSvg).toContain('font-size="36"');
