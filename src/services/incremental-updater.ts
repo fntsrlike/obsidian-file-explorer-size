@@ -1,7 +1,13 @@
 export type VaultEventName = "create" | "modify" | "delete" | "rename";
 
 export interface VaultFileEventSource {
-  on(name: VaultEventName, callback: (...args: any[]) => void): () => void;
+  on(name: "create", callback: (path: string, size: number) => void): () => void;
+  on(name: "modify", callback: (path: string, size: number) => void): () => void;
+  on(name: "delete", callback: (path: string) => void): () => void;
+  on(
+    name: "rename",
+    callback: (newPath: string, oldPath: string) => void
+  ): () => void;
 }
 
 export interface MutableSizeIndex {

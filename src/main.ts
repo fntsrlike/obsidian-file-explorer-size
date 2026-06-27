@@ -5,6 +5,7 @@ import {
   TFile,
   type EventRef,
   type TAbstractFile,
+  type Vault,
   type WorkspaceLeaf
 } from "obsidian";
 import { resolveDisplaySize } from "./domain/display-size";
@@ -44,6 +45,50 @@ import { findNativeFileExplorerLeaf } from "./ui/workspace-leaves";
 
 interface FileExplorerViewLike {
   revealInFolder?: (file: TAbstractFile) => Promise<void> | void;
+}
+
+class ObsidianVaultFileEventSource implements VaultFileEventSource {
+  constructor(private readonly vault: Vault) {}
+
+  on(name: "create", callback: (path: string, size: number) => void): () => void;
+  on(name: "modify", callback: (path: string, size: number) => void): () => void;
+  on(name: "delete", callback: (path: string) => void): () => void;
+  on(
+    name: "rename",
+    callback: (newPath: string, oldPath: string) => void
+  ): () => void;
+  on(
+    name: VaultEventName,
+    callback:
+      | ((path: string, size: number) => void)
+      | ((path: string) => void)
+      | ((newPath: string, oldPath: string) => void)
+  ): () => void {
+    let ref: EventRef;
+    if (name === "rename") {
+      const renameCallback = callback as (
+        newPath: string,
+        oldPath: string
+      ) => void;
+      ref = this.vault.on("rename", (file, oldPath) => {
+        renameCallback(file.path, oldPath);
+      });
+    } else if (name === "delete") {
+      const deleteCallback = callback as (path: string) => void;
+      ref = this.vault.on("delete", (file) => deleteCallback(file.path));
+    } else if (name === "create") {
+      const fileCallback = callback as (path: string, size: number) => void;
+      ref = this.vault.on("create", (file) => {
+        if (file instanceof TFile) fileCallback(file.path, file.stat.size);
+      });
+    } else {
+      const fileCallback = callback as (path: string, size: number) => void;
+      ref = this.vault.on("modify", (file) => {
+        if (file instanceof TFile) fileCallback(file.path, file.stat.size);
+      });
+    }
+    return () => this.vault.offref(ref);
+  }
 }
 
 export default class FileExplorerSizePlugin extends Plugin {
@@ -319,27 +364,6 @@ export default class FileExplorerSizePlugin extends Plugin {
   }
 
   private createEventSource(): VaultFileEventSource {
-    const vault = this.app.vault;
-    return {
-      on: (name: VaultEventName, callback: (...args: any[]) => void) => {
-        let ref: EventRef;
-        if (name === "rename") {
-          ref = vault.on("rename", (file, oldPath) => {
-            callback(file.path, oldPath);
-          });
-        } else if (name === "delete") {
-          ref = vault.on("delete", (file) => callback(file.path));
-        } else if (name === "create") {
-          ref = vault.on("create", (file) => {
-            if (file instanceof TFile) callback(file.path, file.stat.size);
-          });
-        } else {
-          ref = vault.on("modify", (file) => {
-            if (file instanceof TFile) callback(file.path, file.stat.size);
-          });
-        }
-        return () => vault.offref(ref);
-      }
-    };
+    return new ObsidianVaultFileEventSource(this.app.vault);
   }
 }
