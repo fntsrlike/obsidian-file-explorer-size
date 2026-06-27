@@ -15,8 +15,8 @@ export class FileExplorerSizeSettingTab extends PluginSettingTab {
     this.containerEl.empty();
 
     new Setting(this.containerEl)
-      .setName("Show sizes in File Browser")
-      .setDesc("Show file and recursive folder sizes in Obsidian's File Browser.")
+      .setName("Show sizes in file browser")
+      .setDesc("Show file and recursive folder sizes in Obsidian's file browser.")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.showFileBrowserSizes)
@@ -119,7 +119,7 @@ export class FileExplorerSizeSettingTab extends PluginSettingTab {
     new Setting(this.containerEl)
       .setName("Include hidden settings content")
       .setDesc(
-        "Reserved for desktop filesystem support. Obsidian's Vault API normally excludes .obsidian."
+        "Reserved for desktop filesystem support. Hidden configuration folders are not included by the vault API."
       )
       .addToggle((toggle) =>
         toggle

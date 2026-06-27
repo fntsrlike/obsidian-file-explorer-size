@@ -12,7 +12,7 @@ export interface MutableSizeIndex {
 
 export class IncrementalUpdater {
   private disposers: Array<() => void> = [];
-  private notifyTimer: ReturnType<typeof setTimeout> | undefined;
+  private notifyTimer: number | undefined;
 
   constructor(
     private readonly source: VaultFileEventSource,
@@ -46,13 +46,13 @@ export class IncrementalUpdater {
 
   stop(): void {
     for (const dispose of this.disposers.splice(0)) dispose();
-    if (this.notifyTimer !== undefined) clearTimeout(this.notifyTimer);
+    if (this.notifyTimer !== undefined) window.clearTimeout(this.notifyTimer);
     this.notifyTimer = undefined;
   }
 
   private scheduleChange(): void {
-    if (this.notifyTimer !== undefined) clearTimeout(this.notifyTimer);
-    this.notifyTimer = setTimeout(() => {
+    if (this.notifyTimer !== undefined) window.clearTimeout(this.notifyTimer);
+    this.notifyTimer = window.setTimeout(() => {
       this.notifyTimer = undefined;
       this.onChange();
     }, this.debounceMs);

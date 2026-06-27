@@ -1,5 +1,10 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
+
+Object.defineProperty(globalThis, "activeDocument", {
+  configurable: true,
+  get: () => document
+});
 import { FileExplorerDecorator } from "../src/ui/file-explorer-decorator";
 import {
   explorerRoots,

@@ -23,7 +23,7 @@ export class FileExplorerDecorator {
       const observer = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
           for (const node of mutation.addedNodes) {
-            if (node instanceof HTMLElement) this.decorateNode(node);
+            if (node.nodeType === Node.ELEMENT_NODE) this.decorateNode(node as HTMLElement);
           }
         }
       });
@@ -67,7 +67,7 @@ export class FileExplorerDecorator {
     const size = this.options.sizeFor(path, folder) ?? 0;
     const existing = row.querySelector<HTMLElement>(":scope > .fes-size-label");
 
-    const label = existing ?? document.createElement("span");
+    const label = existing ?? row.ownerDocument.createElement("span");
     label.className = "fes-size-label";
     label.textContent = this.options.format(size);
     const threshold = folder

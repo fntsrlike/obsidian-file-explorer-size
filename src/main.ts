@@ -58,7 +58,7 @@ export default class FileExplorerSizePlugin extends Plugin {
 
   async onload(): Promise<void> {
     addIcon(SIZE_RANKING_ICON_ID, sizeRankingIconSvg);
-    this.settings = normalizeSettings((await this.loadData()) ?? {});
+    this.settings = normalizeSettings(this.loadedSettingsData(await this.loadData()));
     this.addSettingTab(new FileExplorerSizeSettingTab(this.app, this));
     this.registerView(
       SIZE_RANKING_VIEW,
@@ -67,7 +67,7 @@ export default class FileExplorerSizePlugin extends Plugin {
 
     this.addCommand({
       id: "toggle-file-browser-sizes",
-      name: "Toggle File Browser sizes",
+      name: "Toggle file browser sizes",
       callback: () =>
         void this.setFileBrowserSizesShown(!this.settings.showFileBrowserSizes)
     });
@@ -107,6 +107,12 @@ export default class FileExplorerSizePlugin extends Plugin {
     this.fileBrowserDecorator?.stop();
     this.makeNavigatorDecorator?.stop();
     this.removeToolbarActions?.();
+  }
+
+  private loadedSettingsData(data: unknown): Record<string, unknown> {
+    return data !== null && typeof data === "object"
+      ? (data as Record<string, unknown>)
+      : {};
   }
 
   async saveSettings(): Promise<void> {
@@ -158,7 +164,7 @@ export default class FileExplorerSizePlugin extends Plugin {
       await leaf?.setViewState({ type: "file-explorer", active: true });
     }
     if (!leaf) return;
-    this.app.workspace.revealLeaf(leaf);
+    await this.app.workspace.revealLeaf(leaf);
     const view = leaf.view as unknown as FileExplorerViewLike | undefined;
     if (view?.revealInFolder) await view.revealInFolder(folder);
   }
@@ -309,7 +315,7 @@ export default class FileExplorerSizePlugin extends Plugin {
       leaf = this.app.workspace.getRightLeaf(false) ?? this.app.workspace.getLeaf("tab");
       await leaf.setViewState({ type: SIZE_RANKING_VIEW, active: true });
     }
-    this.app.workspace.revealLeaf(leaf);
+    await this.app.workspace.revealLeaf(leaf);
   }
 
   private createEventSource(): VaultFileEventSource {

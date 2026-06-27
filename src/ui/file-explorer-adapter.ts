@@ -1,10 +1,18 @@
-import { fileExplorerSizeToolbarSvg } from "./icons";
+import { createFileExplorerSizeToolbarSvg } from "./icons";
 export const FILE_ROW_SELECTOR = ".nav-file-title[data-path]";
 export const FOLDER_ROW_SELECTOR = ".nav-folder-title[data-path]";
 
+function currentDocument(): Document {
+  return activeDocument;
+}
+
+function isElementNode(node: ParentNode): node is Element {
+  return "nodeType" in node && node.nodeType === Node.ELEMENT_NODE;
+}
+
 export function explorerRoots(): HTMLElement[] {
   return [
-    ...document.querySelectorAll<HTMLElement>(
+    ...currentDocument().querySelectorAll<HTMLElement>(
       '.workspace-leaf-content[data-type="file-explorer"], .workspace-leaf-content[data-type="mk-path-view"]'
     )
   ];
@@ -12,7 +20,7 @@ export function explorerRoots(): HTMLElement[] {
 
 export function fileBrowserRoots(): HTMLElement[] {
   return [
-    ...document.querySelectorAll<HTMLElement>(
+    ...currentDocument().querySelectorAll<HTMLElement>(
       '.workspace-leaf-content[data-type="file-explorer"]'
     )
   ];
@@ -20,7 +28,7 @@ export function fileBrowserRoots(): HTMLElement[] {
 
 export function makeNavigatorRoots(): HTMLElement[] {
   return [
-    ...document.querySelectorAll<HTMLElement>(
+    ...currentDocument().querySelectorAll<HTMLElement>(
       '.workspace-leaf-content[data-type="mk-path-view"]'
     )
   ];
@@ -29,10 +37,10 @@ export function makeNavigatorRoots(): HTMLElement[] {
 export function rowsWithin(root: ParentNode): HTMLElement[] {
   const rows: HTMLElement[] = [];
   if (
-    root instanceof HTMLElement &&
+    isElementNode(root) &&
     root.matches(`${FILE_ROW_SELECTOR}, ${FOLDER_ROW_SELECTOR}`)
   ) {
-    rows.push(root);
+    rows.push(root as HTMLElement);
   }
   rows.push(
     ...root.querySelectorAll<HTMLElement>(
@@ -56,10 +64,10 @@ export function installToggleActions(onClick: () => void): () => void {
         .closest<HTMLElement>(".workspace-leaf")
         ?.querySelector<HTMLElement>(".view-actions");
     if (!actions || actions.querySelector(".fes-toggle-action")) continue;
-    const button = document.createElement("button");
+    const button = root.ownerDocument.createElement("button");
     button.className = "clickable-icon fes-toggle-action";
     button.setAttribute("aria-label", "顯示／隱藏檔案大小");
-    button.innerHTML = fileExplorerSizeToolbarSvg();
+    button.append(createFileExplorerSizeToolbarSvg(root.ownerDocument));
     button.addEventListener("click", onClick);
     actions.append(button);
     buttons.push(button);

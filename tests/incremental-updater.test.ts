@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 import { IncrementalUpdater, type VaultFileEventSource } from "../src/services/incremental-updater";
 
