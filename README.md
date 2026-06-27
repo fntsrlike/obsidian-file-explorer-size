@@ -77,6 +77,10 @@ Release assets:
 - `main.js`
 - `styles.css`
 
+## AI-generated code notice
+
+The code in this project was generated with the assistance of AI. Please review it carefully and use it at your own discretion.
+
 ## License
 
 MIT
