@@ -1,4 +1,5 @@
 import {
+  Menu,
   Notice,
   Plugin,
   addIcon,
@@ -18,7 +19,8 @@ import { SizeIndex } from "./domain/size-index";
 import {
   DEFAULT_SETTINGS,
   normalizeSettings,
-  type FileExplorerSizeSettings
+  type FileExplorerSizeSettings,
+  type SizeDisplayMode
 } from "./settings";
 import { FileExplorerSizeSettingTab } from "./settings-tab";
 import {
@@ -126,6 +128,16 @@ export default class FileExplorerSizePlugin extends Plugin {
           )
       });
     }
+    this.addCommand({
+      id: "show-physical-file-sizes",
+      name: "Show physical file sizes in file browser",
+      callback: () => void this.setFileBrowserDisplayMode("physical")
+    });
+    this.addCommand({
+      id: "show-note-group-sizes",
+      name: "Show note group sizes in file browser",
+      callback: () => void this.setFileBrowserDisplayMode("note-group")
+    });
     this.addCommand({
       id: "open-size-ranking",
       name: "Open size ranking",
@@ -331,11 +343,48 @@ export default class FileExplorerSizePlugin extends Plugin {
     this.makeNavigatorDecorator?.refresh();
   }
 
+  async setFileBrowserDisplayMode(mode: SizeDisplayMode): Promise<void> {
+    this.settings.sizeDisplayMode = mode;
+    this.settings.showFileBrowserSizes = true;
+    await this.saveSettings();
+    this.refreshUi();
+    new Notice(
+      mode === "physical"
+        ? "Showing physical file sizes in File Browser."
+        : "Showing note group sizes in File Browser."
+    );
+  }
+
   private installToolbarActions(): void {
     this.removeToolbarActions?.();
-    this.removeToolbarActions = installToggleActions(() =>
-      this.fileBrowserDecorator?.toggle()
+    this.removeToolbarActions = installToggleActions({
+      onClick: () => this.fileBrowserDecorator?.toggle(),
+      onContextMenu: (event) => this.showFileBrowserSizeModeMenu(event)
+    });
+  }
+
+  private showFileBrowserSizeModeMenu(event: MouseEvent): void {
+    const menu = new Menu();
+    menu.addItem((item) =>
+      item
+        .setTitle("Physical file size")
+        .setChecked(this.settings.showFileBrowserSizes && this.settings.sizeDisplayMode === "physical")
+        .onClick(() => void this.setFileBrowserDisplayMode("physical"))
     );
+    menu.addItem((item) =>
+      item
+        .setTitle("Note group size")
+        .setChecked(this.settings.showFileBrowserSizes && this.settings.sizeDisplayMode === "note-group")
+        .onClick(() => void this.setFileBrowserDisplayMode("note-group"))
+    );
+    menu.addSeparator();
+    menu.addItem((item) =>
+      item
+        .setTitle("Hide sizes")
+        .setChecked(!this.settings.showFileBrowserSizes)
+        .onClick(() => void this.setFileBrowserSizesShown(false))
+    );
+    menu.showAtMouseEvent(event);
   }
 
   isMakeMdInstalled(): boolean {

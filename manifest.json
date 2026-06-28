@@ -1,7 +1,7 @@
 {
   "id": "file-explorer-size",
   "name": "File Explorer Size",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "minAppVersion": "1.7.2",
   "description": "Show file, folder, and note group sizes in the File Explorer with rankings.",
   "author": "fntsrlike",

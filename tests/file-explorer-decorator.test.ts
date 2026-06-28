@@ -37,7 +37,7 @@ describe("FileExplorerDecorator", () => {
       </div>
     `;
     expect(explorerRoots()).toHaveLength(1);
-    const remove = installToggleActions(vi.fn());
+    const remove = installToggleActions({ onClick: vi.fn() });
     expect(
       document.querySelector(
         '.workspace-leaf-content[data-type="mk-path-view"] .fes-toggle-action'
@@ -56,13 +56,35 @@ describe("FileExplorerDecorator", () => {
         </div>
       </div>
     `;
-    const remove = installToggleActions(vi.fn());
+    const remove = installToggleActions({ onClick: vi.fn() });
     const toggle = document.querySelector(".fes-toggle-action");
     expect(toggle).not.toBeNull();
     expect(toggle?.textContent).toContain("MB");
     expect(toggle?.innerHTML).toContain('d="M2 5h13M2 10h13M2 15h13"');
     expect(toggle?.innerHTML).toContain('x="11"');
     expect(toggle?.parentElement?.lastElementChild).toBe(toggle);
+    remove();
+    document.body.innerHTML = "";
+  });
+
+  it("keeps left click as toggle and exposes right click for mode switching", () => {
+    document.body.innerHTML = `
+      <div class="workspace-leaf-content" data-type="file-explorer">
+        <div class="nav-buttons-container"></div>
+      </div>
+    `;
+    const onClick = vi.fn();
+    const onContextMenu = vi.fn();
+    const remove = installToggleActions({ onClick, onContextMenu });
+    const toggle = document.querySelector<HTMLElement>(".fes-toggle-action");
+
+    toggle?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    const contextEvent = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+    toggle?.dispatchEvent(contextEvent);
+
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(onContextMenu).toHaveBeenCalledTimes(1);
+    expect(contextEvent.defaultPrevented).toBe(true);
     remove();
     document.body.innerHTML = "";
   });

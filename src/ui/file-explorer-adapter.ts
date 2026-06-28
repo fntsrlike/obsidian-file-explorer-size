@@ -54,7 +54,14 @@ export function isFolderRow(row: HTMLElement): boolean {
   return row.matches(FOLDER_ROW_SELECTOR);
 }
 
-export function installToggleActions(onClick: () => void): () => void {
+export interface FileExplorerToolbarActionHandlers {
+  onClick: () => void;
+  onContextMenu?: (event: MouseEvent) => void;
+}
+
+export function installToggleActions(
+  handlers: FileExplorerToolbarActionHandlers
+): () => void {
   const buttons: HTMLElement[] = [];
   for (const root of fileBrowserRoots()) {
     const actions =
@@ -68,7 +75,13 @@ export function installToggleActions(onClick: () => void): () => void {
     button.className = "clickable-icon fes-toggle-action";
     button.setAttribute("aria-label", "顯示／隱藏檔案大小");
     button.append(createFileExplorerSizeToolbarSvg(root.ownerDocument));
-    button.addEventListener("click", onClick);
+    button.addEventListener("click", handlers.onClick);
+    if (handlers.onContextMenu) {
+      button.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+        handlers.onContextMenu?.(event);
+      });
+    }
     actions.append(button);
     buttons.push(button);
   }
